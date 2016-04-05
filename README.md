@@ -41,3 +41,11 @@ function handleIndex (request, reply) {
 
 ```
 
+API
+===
+
+`hpv(module, options)`
+
+* `module`: the object that hapi's vision module requires to render views
+* `options`: configuration for hpv
+  - `allowPassthrough`: (default: `true`) if context promise is not a Promise, don't throw an error and use it as the context for the template
