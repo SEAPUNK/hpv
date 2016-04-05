@@ -1,6 +1,6 @@
 {
   "name": "hpv",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "hapi promise views",
   "main": "index.js",
   "scripts": {
