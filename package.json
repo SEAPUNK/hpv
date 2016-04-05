@@ -1,6 +1,6 @@
 {
   "name": "hpv",
-  "version": "0.0.6",
+  "version": "0.1.0",
   "description": "hapi promise views",
   "main": "index.js",
   "scripts": {
@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/seapunk/hpv#readme",
   "dependencies": {
-    "async.asyncify": "^0.5.2"
+    "async.asyncify": "^0.5.2",
+    "pify": "^2.3.0"
   }
 }

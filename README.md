@@ -15,12 +15,12 @@ const handlebars = require('handlebars')
 
 // assuming 'server' is your set up hapi server w/ vision
 
-server.views({
+// wrap server.views object in hpv
+server.views(hpv({
   engines: {
-    handlebars: hpv(handlebars) // wrap your handlebars engine in hpv
-  },
-  compileMode: 'async' // compile mode MUST be 'async' for this to work
-})
+    handlebars: handlebars
+  }
+}))
 
 server.route({
   path: '/',
@@ -44,8 +44,10 @@ function handleIndex (request, reply) {
 API
 ===
 
-`hpv(module, options)`
+`hpv(viewsOptions, options)`
 
-* `module`: the object that hapi's vision module requires to render views
+* `viewsOptions`: configuration object for server.views
+  - `compileMode` is force set to `'async'`, although you should set `compileMode` to let hpv know how to wrap the compile function
+  - every engine's `compile` function is wrapped in hpv's custom wrapper that passes through the context
 * `options`: configuration for hpv
   - `allowPassthrough`: (default: `true`) if context promise is not a Promise, don't throw an error and use it as the context for the template

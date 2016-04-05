@@ -1,31 +1,57 @@
 'use strict'
 
 const asyncify = require('async.asyncify')
+const pify = require('pify')
 
-module.exports = (engine, config) => {
-  config = Object.assign({
-    allowPassthrough: true
-  }, config)
+const defaultConfig = {
+  allowPassthrough: true
+}
 
-  function compileFn (template, options) {
-    return compileWithEngine(engine, template, options).then((compiled) => {
+module.exports = (viewOptions, config) => {
+  config = Object.assign({}, defaultConfig, config, {
+    compileMode: viewOptions.compileMode,
+    layoutKeyword: viewOptions.layoutKeyword || 'content'
+  })
+
+  for (let key of Object.keys(viewOptions.engines)) {
+    const engine = viewOptions.engines[key]
+    overrideCompileFn(engine, config)
+  }
+
+  return Object.assign({}, viewOptions, {
+    compileMode: 'async'
+  })
+}
+
+function overrideCompileFn (engine, config) {
+  function wrappedCompile (template, options) {
+    return compileWithEngine(engine, template, options, config).then((compiled) => {
       return asyncify((context, options) => {
         return loadContext(context, config).then((data) => {
-          return compiled(data)
+          if (config.compileMode === 'async') {
+            return pify(compiled)(data)
+          } else {
+            return compiled(data)
+          }
         })
       })
     })
   }
 
-  return {
-    compile: asyncify(compileFn)
-  }
+  engine.compile = asyncify(wrappedCompile)
 }
 
-function compileWithEngine (engine, template, options) {
+function compileWithEngine (engine, template, options, config) {
   return new Promise((resolve, reject) => {
-    const compiled = engine.compile(template, options)
-    resolve(compiled)
+    if (config.compileMode === 'async') {
+      engine.compile(template, options, (err, compiled) => {
+        if (err) return reject(err)
+        resolve(compiled)
+      })
+    } else {
+      const compiled = engine.compile(template, options)
+      resolve(compiled)
+    }
   })
 }
 
@@ -34,6 +60,12 @@ function loadContext (context, config) {
     if (typeof context.then !== 'function' && config.allowPassthrough) {
       return resolve(context)
     }
-    context.then(resolve).catch(reject)
+    context.then((data) => {
+      const layoutKeyword = config.layoutKeyword
+      if (context[layoutKeyword] !== undefined) {
+        data[layoutKeyword] = context[layoutKeyword]
+      }
+      resolve(data)
+    }).catch(reject)
   })
 }
