@@ -1,24 +1,32 @@
 'use strict'
 
-module.exports = function (engine) {
-  return {
-    compile: function (template, options, next) {
-      let compiled
-      try {
-        compiled = engine.compile(template, options)
-      } catch (err) {
-        return next(err)
-      }
-      return next(null, function (context, options, callback) {
-        try {
-          context.then(function (data) {
-            const rendered = compiled(data)
-            callback(null, rendered)
-          }).catch(callback)
-        } catch (err) {
-          return callback(err)
-        }
+const asyncify = require('async.asyncify')
+
+module.exports = (engine) => {
+  function compileFn (template, options) {
+    return compileWithEngine(engine, template, options).then((compiled) => {
+      return asyncify((context, options) => {
+        return loadContext(context).then((data) => {
+          return compiled(data)
+        })
       })
-    }
+    })
   }
+
+  return {
+    compile: asyncify(compileFn)
+  }
+}
+
+function compileWithEngine (engine, template, options) {
+  return new Promise((resolve, reject) => {
+    const compiled = engine.compile(template, options)
+    resolve(compiled)
+  })
+}
+
+function loadContext (context) {
+  return new Promise((resolve, reject) => {
+    context.then(resolve).catch(reject)
+  })
 }
