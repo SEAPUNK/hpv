@@ -24,8 +24,10 @@ module.exports = (viewOptions, config) => {
 }
 
 function overrideCompileFn (engine, config) {
+  const originalCompile = engine.compile
+
   function wrappedCompile (template, options) {
-    return compileWithEngine(engine, template, options, config).then((compiled) => {
+    return compileWithEngine(originalCompile, template, options, config).then((compiled) => {
       return asyncify((context, options) => {
         return loadContext(context, config).then((data) => {
           if (config.compileMode === 'async') {
@@ -41,15 +43,15 @@ function overrideCompileFn (engine, config) {
   engine.compile = asyncify(wrappedCompile)
 }
 
-function compileWithEngine (engine, template, options, config) {
+function compileWithEngine (compile, template, options, config) {
   return new Promise((resolve, reject) => {
     if (config.compileMode === 'async') {
-      engine.compile(template, options, (err, compiled) => {
+      compile(template, options, (err, compiled) => {
         if (err) return reject(err)
         resolve(compiled)
       })
     } else {
-      const compiled = engine.compile(template, options)
+      const compiled = compile(template, options)
       resolve(compiled)
     }
   })
