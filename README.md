@@ -3,7 +3,7 @@ hpv
 
 **requires node v4 or later**
 
-lets you pass promises to `reply.view()`
+hapi promise view: lets you pass promises to `reply.view()`
 
 **this module is super basic, and probably won't work very well with your code; use this at your own risk!** (and open up some issues/PRs to help this module grow)
 
