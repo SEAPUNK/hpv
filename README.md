@@ -1,6 +1,8 @@
 hpv
 ===
 
+[![Greenkeeper badge](https://badges.greenkeeper.io/SEAPUNK/hpv.svg)](https://greenkeeper.io/)
+
 **requires node v4 or later**
 
 hapi promise view: lets you pass promises to `reply.view()`
